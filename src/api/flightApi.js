@@ -26,3 +26,14 @@ export async function searchByAirport(airportIata, direction = 'dep', date = nul
 export async function searchHistory(flightIata, date) {
   return callApi({ flight_iata: flightIata.toUpperCase(), flight_date: date, limit: 25 })
 }
+
+export async function getClaudeFacts({ flightNum, airline, dep, arr, aircraft }) {
+  const response = await fetch('/api/flight-facts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ flightNum, airline, dep, arr, aircraft }),
+  })
+  const data = await response.json()
+  if (!response.ok || data.error) throw new Error(data.error || 'Failed to fetch facts')
+  return data.facts
+}

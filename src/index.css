@@ -317,6 +317,33 @@ body {
   font-style: italic;
 }
 
+/* Did you know? */
+.fc-facts-toggle {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .55rem 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  font-size: .78rem; font-weight: 600; color: #64748b;
+  cursor: pointer; user-select: none;
+  transition: background .15s, color .15s;
+}
+.fc-facts-toggle:hover { background: #f8fafc; color: var(--primary); }
+.fc-facts-chevron {
+  font-size: 1rem; transition: transform .2s; display: inline-block;
+}
+.fc-facts-chevron.open { transform: rotate(90deg); }
+.fc-facts {
+  padding: .6rem 1.25rem .9rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbff;
+}
+.fc-facts-list {
+  margin: 0; padding-left: 1.1rem;
+  display: flex; flex-direction: column; gap: .45rem;
+}
+.fc-facts-list li { font-size: .8rem; color: #334155; line-height: 1.5; }
+.fc-facts-loading { font-size: .78rem; color: #94a3b8; font-style: italic; }
+.fc-facts-error { font-size: .78rem; color: #94a3b8; }
+
 /* ── Status Badges ──────────────────────────────────────────── */
 .badge-group { display: flex; gap: .35rem; align-items: center; }
 .badge {

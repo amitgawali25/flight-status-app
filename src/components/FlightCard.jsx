@@ -4,6 +4,8 @@ import FlightMap from './FlightMap'
 import SeatMapModal from './SeatMapModal'
 import { getAircraftInfo } from '../data/aircraft'
 import { getSeatmap } from '../data/seatmaps'
+import { getStaticFacts } from '../data/facts'
+import { getClaudeFacts } from '../api/flightApi'
 
 function fmt(iso, tz) {
   if (!iso) return '--:--'
@@ -47,10 +49,39 @@ function flightProgress(flight) {
 export default function FlightCard({ flight }) {
   const [showMap, setShowMap] = useState(false)
   const [showSeatMap, setShowSeatMap] = useState(false)
+  const [factsOpen, setFactsOpen] = useState(false)
+  const [facts, setFacts] = useState(null)
+  const [factsLoading, setFactsLoading] = useState(false)
+  const [factsError, setFactsError] = useState(null)
   const { departure: dep, arrival: arr, airline, flight: fi, aircraft, live, flight_status, flight_date } = flight
   const aircraftInfo = getAircraftInfo(aircraft?.iata)
   const hasSeatmap = !!getSeatmap(aircraft?.iata)
   const codeshare = fi?.codeshared
+
+  async function handleFactsToggle() {
+    if (factsOpen) { setFactsOpen(false); return }
+    setFactsOpen(true)
+    if (facts || factsLoading) return
+    const staticFacts = getStaticFacts({
+      depIata: dep?.iata, arrIata: arr?.iata,
+      airlineIata: airline?.iata, aircraftIata: aircraft?.iata,
+    })
+    if (staticFacts) { setFacts(staticFacts); return }
+    setFactsLoading(true)
+    setFactsError(null)
+    try {
+      const claudeFacts = await getClaudeFacts({
+        flightNum: fi?.iata, airline: airline?.name,
+        dep: dep?.iata, arr: arr?.iata,
+        aircraft: aircraftInfo?.name || aircraft?.iata,
+      })
+      setFacts(claudeFacts)
+    } catch (e) {
+      setFactsError('Could not load facts. Add ANTHROPIC_API_KEY to .env to enable AI-generated facts.')
+    } finally {
+      setFactsLoading(false)
+    }
+  }
   const progress = flightProgress(flight)
   const dur = duration(dep?.scheduled, arr?.scheduled)
   const maxDelay = Math.max(dep?.delay || 0, arr?.delay || 0)
@@ -147,6 +178,23 @@ export default function FlightCard({ flight }) {
                 {live.altitude && ` ${live.altitude.toLocaleString()} ft`}
                 {live.speed_horizontal && ` · ${Math.round(live.speed_horizontal)} kts`}
               </DetailChip>
+            )}
+          </div>
+        )}
+
+        <div className="fc-facts-toggle" onClick={handleFactsToggle}>
+          <span>💡 Did you know?</span>
+          <span className={`fc-facts-chevron${factsOpen ? ' open' : ''}`}>›</span>
+        </div>
+
+        {factsOpen && (
+          <div className="fc-facts">
+            {factsLoading && <div className="fc-facts-loading">Loading facts…</div>}
+            {factsError && <div className="fc-facts-error">{factsError}</div>}
+            {facts && (
+              <ul className="fc-facts-list">
+                {facts.map((f, i) => <li key={i}>{f}</li>)}
+              </ul>
             )}
           </div>
         )}
