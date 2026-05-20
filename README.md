@@ -6,6 +6,8 @@ A real-time flight status and tracking app built with React and Node.js, powered
 
 ![App screenshot](screenshot.png)
 
+![Seat map view](screenshot-seatmap.png)
+
 ## Features
 
 - **Flight Search** — Look up any flight by IATA code (e.g. `EK201`, `LH400`) and see real-time status, departure/arrival times, delays, and gate info
