@@ -46,6 +46,7 @@ export default function FlightCard({ flight }) {
   const [showMap, setShowMap] = useState(false)
   const { departure: dep, arrival: arr, airline, flight: fi, aircraft, live, flight_status, flight_date } = flight
   const aircraftInfo = getAircraftInfo(aircraft?.iata)
+  const codeshare = fi?.codeshared
   const progress = flightProgress(flight)
   const dur = duration(dep?.scheduled, arr?.scheduled)
   const maxDelay = Math.max(dep?.delay || 0, arr?.delay || 0)
@@ -97,14 +98,23 @@ export default function FlightCard({ flight }) {
           <TimeBlock label="Arrival" endpoint={arr} right />
         </div>
 
-        {(dep?.terminal || dep?.gate || arr?.terminal || arr?.gate || arr?.baggage || live || aircraft?.iata || aircraft?.registration) && (
+        {(dep?.terminal || dep?.gate || arr?.terminal || arr?.gate || arr?.baggage || live || aircraft?.iata || aircraft?.registration || codeshare) && (
           <div className="fc-details">
             {aircraft?.iata && (
               <DetailChip className="fc-chip-aircraft">
                 <b>Aircraft:</b>
                 {` ${aircraftInfo ? aircraftInfo.name : aircraft.iata}`}
                 {aircraftInfo && <span className="fc-chip-type">{aircraftInfo.type}</span>}
+                {aircraftInfo?.introduced && <span className="fc-chip-intro">Intro {aircraftInfo.introduced}</span>}
                 {aircraft.registration && <span className="fc-chip-reg">{aircraft.registration}</span>}
+              </DetailChip>
+            )}
+            {codeshare && (
+              <DetailChip>
+                <b>Codeshare:</b>
+                {` Operated as `}
+                <span className="fc-chip-cs-flight">{codeshare.flight_iata?.toUpperCase()}</span>
+                {` · ${codeshare.airline_name}`}
               </DetailChip>
             )}
             {(dep?.terminal || dep?.gate) && (
@@ -144,6 +154,12 @@ function TimeBlock({ label, endpoint, right }) {
   const actual = endpoint.actual ? fmt(endpoint.actual, endpoint.timezone) : null
   const estimated = !actual && endpoint.estimated ? fmt(endpoint.estimated, endpoint.timezone) : null
   const delayed = endpoint.delay > 0
+  const runway = endpoint.actual_runway
+    ? fmt(endpoint.actual_runway, endpoint.timezone)
+    : endpoint.estimated_runway ? fmt(endpoint.estimated_runway, endpoint.timezone) : null
+  const runwayLabel = right
+    ? (endpoint.actual_runway ? 'Wheels down' : 'Est. wheels down')
+    : (endpoint.actual_runway ? 'Wheels up' : 'Est. wheels up')
 
   return (
     <div className={`fc-time-block${right ? ' fc-time-right' : ''}`}>
@@ -152,6 +168,7 @@ function TimeBlock({ label, endpoint, right }) {
       {actual && <div className="fc-time-actual">Actual: {actual}</div>}
       {estimated && <div className="fc-time-est">Est: {estimated}</div>}
       {delayed && <div className="fc-time-badge">+{endpoint.delay} min</div>}
+      {runway && <div className="fc-time-runway">{runwayLabel}: {runway}</div>}
     </div>
   )
 }
