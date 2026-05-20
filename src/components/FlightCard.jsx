@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import StatusBadge from './StatusBadge'
 import FlightMap from './FlightMap'
+import SeatMapModal from './SeatMapModal'
 import { getAircraftInfo } from '../data/aircraft'
+import { getSeatmap } from '../data/seatmaps'
 
 function fmt(iso, tz) {
   if (!iso) return '--:--'
@@ -44,8 +46,10 @@ function flightProgress(flight) {
 
 export default function FlightCard({ flight }) {
   const [showMap, setShowMap] = useState(false)
+  const [showSeatMap, setShowSeatMap] = useState(false)
   const { departure: dep, arrival: arr, airline, flight: fi, aircraft, live, flight_status, flight_date } = flight
   const aircraftInfo = getAircraftInfo(aircraft?.iata)
+  const hasSeatmap = !!getSeatmap(aircraft?.iata)
   const codeshare = fi?.codeshared
   const progress = flightProgress(flight)
   const dur = duration(dep?.scheduled, arr?.scheduled)
@@ -70,6 +74,11 @@ export default function FlightCard({ flight }) {
             <button className="btn-track" onClick={() => setShowMap(true)} title="Open map view">
               🗺 Track
             </button>
+            {hasSeatmap && (
+              <button className="btn-seatmap" onClick={() => setShowSeatMap(true)} title="View seat map">
+                🪑 Seats
+              </button>
+            )}
           </div>
         </div>
 
@@ -144,6 +153,7 @@ export default function FlightCard({ flight }) {
       </div>
 
       {showMap && <FlightMap flight={flight} onClose={() => setShowMap(false)} />}
+      {showSeatMap && <SeatMapModal flight={flight} onClose={() => setShowSeatMap(false)} />}
     </>
   )
 }
